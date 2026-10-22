@@ -1,7 +1,7 @@
 # TickLLMe
 TickLLMe (pronounced "tickle me") is the MCP server and Claude Desktop extension for [Tickbuddy](https://github.com/martinhammer/tickbuddy), the daily habit and event tracker for Nextcloud.
 
-It lets Claude answer questions about your Tickbuddy journal ("how's my exercise streak?", "what did I tick yesterday?") and if you allow it record things ("I had three coffees", "tick the nightly backup and note it finished at 02:14"). It runs on your own computer and talks only to your Nextcloud.
+It lets Claude answer questions about your Tickbuddy journal ("how's my exercise streak?", "what did I tick yesterday?") and if you allow it record things ("I had three coffees", "tick the nightly backup and note it finished at 02:14") or even create a populate tracks ("check github.com/martinhammer and see on which days in 2026 I made a contribution, then create a new track in Tickbuddy called Coding and tick those days"). The level of access is controlled through settings. It runs on your own computer and talks only to your Nextcloud.
 
 ## What Claude may do
 
@@ -9,17 +9,17 @@ You choose an access level in TickLLMe's settings:
 
 | Level | Claude can |
 |---|---|
-| 1 (default) | Only read your journal: tracks, days, ticks, notes and stats |
+| 1 | Default. Only read your journal: tracks, days, ticks, notes and stats |
 | 2 | Also tick and untick, change counters and write notes |
 | 3 | Also add and rename tracks |
 
-Claude can never delete, archive or reorder tracks and it can't import anything. Tracks marked private stay hidden from Claude unless you turn on **Show private tracks**. Claude Code also asks before each tool call unless you allow it.
+Claude can never delete, archive or reorder tracks and it can't import anything. Tracks marked private stay hidden from Claude unless you turn on "Show private tracks". Claude also asks before each tool call unless you allow it.
 
 ## Install
 
 ### Claude Desktop
 
-Download `tickllme-vX.Y.Z.mcpb` from the [latest release](https://github.com/martinhammer/tickllme/releases/latest) and add it in Claude Desktop Extensions.
+Download `tickllme-vX.Y.Z.mcpb` from the [latest release](https://github.com/martinhammer/tickllme/releases/latest) and add it in Extensions in Claude Desktop. Then use the extension settings to sign in and configure TickLLMe.
 
 ### Claude Code
 
@@ -28,7 +28,7 @@ Download `tickllme-vX.Y.Z.mcpb` from the [latest release](https://github.com/mar
 /plugin install tickllme@tickllme
 ```
 
-Claude Code then asks for the signing in settings mentioned below.
+Claude Code then asks for the settings as mentioned below.
 
 Marketplaces other than Anthropic's don't update automatically by default, so turn on auto-update for this marketplace in `/plugin`, or update by hand there. Needs Claude Code 2.1.224 or later, on Linux (x64 or arm64), macOS or Windows.
 
@@ -39,8 +39,6 @@ There are two ways, and you only need one:
 * Enter your **Nextcloud address**, **Nextcloud user name** and a **Nextcloud app password** in TickLLMe's settings. All three must be filled in.
 * If you've already run `tickcli login` (or `tickllme login`) on this computer, leave all three fields empty. TickLLMe uses the same stored sign-in, from the keychain or Tickcli's encrypted file.
 * If both are present, the settings win.
-
-The settings take only an `https://` address, or plain `http://` to `localhost` or a private IP address. For a Nextcloud you reach over plain http by name (such as `http://nextcloud.local`), sign in with `tickllme login <url> --insecure-http` instead and leave the fields empty.
 
 `tickllme status` shows which sign-in is used, for example:
 
@@ -53,9 +51,9 @@ Tickbuddy 2.3.0
 
 | Setting | What it does |
 |---|---|
-| Nextcloud address | The address you open Nextcloud at, such as https://cloud.example.com. Leave empty to use your Tickcli sign-in. |
+| Nextcloud address | The URL of your Nextcloud server where Tickbuddy is installed. Leave empty to use your Tickcli sign-in. The setting accepts only an `https://` address, or plain `http://` to `localhost` or a private IP address. For a Nextcloud you reach over plain http by name (such as `http://nextcloud.local`), sign in with `tickllme login <url> --insecure-http` instead and leave the fields empty. |
 | Nextcloud user name | Your Nextcloud login name. Leave empty to use your Tickcli sign-in. |
-| Nextcloud app password | An app password just for TickLLMe (see above). Leave empty to use your Tickcli sign-in. |
+| Nextcloud app password | A Nextcloud app password. Leave empty to use your Tickcli sign-in. |
 | What Claude may do | The access level, 1 to 3. |
 | Show private tracks | Off: Claude can't see or change private tracks. On: it can. |
 
