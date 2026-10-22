@@ -1,0 +1,21 @@
+{
+  "name": "tickllme",
+  "owner": {
+    "name": "Martin Hammer",
+    "url": "https://github.com/martinhammer"
+  },
+  "description": "TickLLMe, the Claude Code plugin for Tickbuddy",
+  "plugins": [
+    {
+      "name": "tickllme",
+      "displayName": "TickLLMe",
+      "description": "An MCP server that lets your AI agents log and read your entries in Tickbuddy, the daily habit and event tracker for Nextcloud.",
+      "version": "0.1.0",
+      "source": {
+        "source": "archive",
+        "url": "https://github.com/martinhammer/tickllme/releases/download/v0.1.0/tickllme-plugin-v0.1.0.zip",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    }
+  ]
+}

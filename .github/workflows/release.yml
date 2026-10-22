@@ -1,0 +1,81 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# On a vX.Y.Z tag: test, build every target, make the plugin zip and the
+# Desktop extension, attach both to the tag's release, and print the new
+# marketplace.json entry in the job summary. It commits nothing: paste the
+# entry into .claude-plugin/marketplace.json and commit it yourself.
+
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Refuse a development go.mod
+        run: |
+          if grep -q '^replace ' go.mod; then
+            echo "::error file=go.mod::go.mod still has a replace directive; require a tagged Tickcli before releasing"
+            exit 1
+          fi
+
+      - name: Test
+        run: |
+          go vet ./...
+          go run honnef.co/go/tools/cmd/staticcheck@latest ./...
+          go test ./...
+
+      - name: Build the plugin zip and the extension
+        run: |
+          sudo apt-get install -y zip
+          make release-local VERSION="$GITHUB_REF_NAME"
+
+      - name: Start the Linux build through the launcher
+        run: |
+          printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"release","version":"0"}}}' \
+            | timeout 20 dist/plugin/launcher/tickllme.sh serve --level 1 > answer.json
+          grep -q '"name":"tickllme"' answer.json
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="$GITHUB_REF_NAME"
+          zip="dist/tickllme-plugin-$tag.zip"
+          mcpb="dist/tickllme-$tag.mcpb"
+          gh release view "$tag" >/dev/null 2>&1 || gh release create "$tag" --verify-tag --title "TickLLMe $tag" --notes "See CHANGELOG.md."
+          gh release upload "$tag" "$zip" "$mcpb" --clobber
+
+          sha=$(sha256sum "$zip" | cut -d' ' -f1)
+          {
+            echo "## marketplace.json entry for $tag"
+            echo
+            echo "Replace the \`version\` and \`source\` of the plugin entry in \`.claude-plugin/marketplace.json\` with these, then commit:"
+            echo
+            echo '```json'
+            echo "\"version\": \"${tag#v}\","
+            echo "\"source\": {"
+            echo "  \"source\": \"archive\","
+            echo "  \"url\": \"https://github.com/${GITHUB_REPOSITORY}/releases/download/$tag/tickllme-plugin-$tag.zip\","
+            echo "  \"sha256\": \"$sha\""
+            echo "}"
+            echo '```'
+            echo
+            echo "\`.mcpb\` sha256: \`$(sha256sum "$mcpb" | cut -d' ' -f1)\`"
+          } >> "$GITHUB_STEP_SUMMARY"

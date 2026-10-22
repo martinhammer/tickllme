@@ -1,0 +1,143 @@
+{
+  "manifest_version": "0.3",
+  "name": "tickllme",
+  "display_name": "TickLLMe",
+  "version": "0.1.0",
+  "description": "An MCP server that lets your AI agents log and read your entries in Tickbuddy, the daily habit and event tracker for Nextcloud.",
+  "long_description": "TickLLMe (pronounced \"tickle me\") is an MCP server that lets your AI agents log and read your entries in Tickbuddy, the daily habit and event tracker for Nextcloud. Ask how your exercise streak is going or what you ticked yesterday; at access level 2 Claude can also tick tracks, change counters and write notes, and at level 3 add and rename tracks. Claude can never delete, archive or import anything, and private tracks stay hidden unless you turn them on.",
+  "author": {
+    "name": "Martin Hammer",
+    "url": "https://github.com/martinhammer"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/martinhammer/tickllme"
+  },
+  "homepage": "https://github.com/martinhammer/tickllme",
+  "license": "GPL-3.0-or-later",
+  "keywords": [
+    "tickbuddy",
+    "nextcloud",
+    "habits"
+  ],
+  "server": {
+    "type": "binary",
+    "entry_point": "server/tickllme",
+    "mcp_config": {
+      "command": "${__dirname}/server/tickllme",
+      "args": [
+        "serve",
+        "--level",
+        "${user_config.level}",
+        "--private=${user_config.show_private}"
+      ],
+      "env": {
+        "TICKBUDDY_URL": "${user_config.url}",
+        "TICKBUDDY_USER": "${user_config.user}",
+        "TICKBUDDY_APP_PASSWORD": "${user_config.app_password}"
+      },
+      "platform_overrides": {
+        "win32": {
+          "command": "${__dirname}/server/tickllme.exe"
+        },
+        "linux": {
+          "command": "${__dirname}/launcher/tickllme.sh"
+        }
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "list_tracks",
+      "description": "List the tracks in journal order"
+    },
+    {
+      "name": "get_day",
+      "description": "Every track on one day, with values and notes"
+    },
+    {
+      "name": "get_ticks",
+      "description": "The entries over up to 31 days (366 for one track)"
+    },
+    {
+      "name": "get_notes",
+      "description": "The day notes over a range"
+    },
+    {
+      "name": "get_stats",
+      "description": "Totals, weekly mean, streaks and breaks, all time or for a period"
+    },
+    {
+      "name": "set_tick",
+      "description": "Tick, untick or set a counter on a day (level 2)"
+    },
+    {
+      "name": "add_to_counter",
+      "description": "Add to or take from a counter (level 2)"
+    },
+    {
+      "name": "set_note",
+      "description": "Write, replace, append to or delete a day's note (level 2)"
+    },
+    {
+      "name": "create_track",
+      "description": "Add a track (level 3)"
+    },
+    {
+      "name": "rename_track",
+      "description": "Rename a track (level 3)"
+    }
+  ],
+  "prompts": [
+    {
+      "name": "log_day",
+      "description": "Go through every track for a day and save the changes in one go (level 2)",
+      "arguments": [
+        "date"
+      ],
+      "text": "Help me log my day in Tickbuddy for ${arguments.date}."
+    }
+  ],
+  "compatibility": {
+    "platforms": [
+      "darwin",
+      "win32",
+      "linux"
+    ]
+  },
+  "user_config": {
+    "url": {
+      "type": "string",
+      "title": "Nextcloud address",
+      "description": "The address you open Nextcloud at, such as https://cloud.example.com. Leave this and the next two fields empty if you've already signed in with Tickcli on this computer; TickLLMe then uses that sign-in.",
+      "required": false
+    },
+    "user": {
+      "type": "string",
+      "title": "Nextcloud user name",
+      "description": "Your Nextcloud login name. Leave empty to use your Tickcli sign-in.",
+      "required": false
+    },
+    "app_password": {
+      "type": "string",
+      "title": "Nextcloud app password",
+      "description": "Create one in Nextcloud under Settings → Security → Devices & sessions (\"Create new app password\"), just for TickLLMe so you can revoke it on its own. Not your normal password. Stored securely by Claude. Leave empty to use your Tickcli sign-in.",
+      "required": false,
+      "sensitive": true
+    },
+    "level": {
+      "type": "number",
+      "title": "What Claude may do",
+      "description": "1: only read your journal (default). 2: also tick, untick, change counters and write notes. 3: also add and rename tracks. Claude can never delete, archive or import anything.",
+      "default": 1,
+      "min": 1,
+      "max": 3
+    },
+    "show_private": {
+      "type": "boolean",
+      "title": "Show private tracks",
+      "description": "Off: Claude can't see or change tracks you've marked private. On: it can.",
+      "default": false
+    }
+  }
+}

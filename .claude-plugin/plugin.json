@@ -1,0 +1,70 @@
+{
+  "name": "tickllme",
+  "displayName": "TickLLMe",
+  "version": "0.1.0",
+  "description": "An MCP server that lets your AI agents log and read your entries in Tickbuddy, the daily habit and event tracker for Nextcloud.",
+  "author": {
+    "name": "Martin Hammer",
+    "url": "https://github.com/martinhammer"
+  },
+  "homepage": "https://github.com/martinhammer/tickllme",
+  "repository": "https://github.com/martinhammer/tickllme",
+  "license": "GPL-3.0-or-later",
+  "keywords": [
+    "tickbuddy",
+    "nextcloud",
+    "habits",
+    "mcp"
+  ],
+  "userConfig": {
+    "url": {
+      "type": "string",
+      "title": "Nextcloud address",
+      "description": "The address you open Nextcloud at, such as https://cloud.example.com. Leave this and the next two fields empty if you've already signed in with Tickcli on this computer; TickLLMe then uses that sign-in.",
+      "required": false
+    },
+    "user": {
+      "type": "string",
+      "title": "Nextcloud user name",
+      "description": "Your Nextcloud login name. Leave empty to use your Tickcli sign-in.",
+      "required": false
+    },
+    "app_password": {
+      "type": "string",
+      "title": "Nextcloud app password",
+      "description": "Create one in Nextcloud under Settings → Security → Devices & sessions (\"Create new app password\"), just for TickLLMe so you can revoke it on its own. Not your normal password. Stored securely by Claude. Leave empty to use your Tickcli sign-in.",
+      "required": false,
+      "sensitive": true
+    },
+    "level": {
+      "type": "number",
+      "title": "What Claude may do",
+      "description": "1: only read your journal (default). 2: also tick, untick, change counters and write notes. 3: also add and rename tracks. Claude can never delete, archive or import anything.",
+      "default": 1,
+      "min": 1,
+      "max": 3
+    },
+    "show_private": {
+      "type": "boolean",
+      "title": "Show private tracks",
+      "description": "Off: Claude can't see or change tracks you've marked private. On: it can.",
+      "default": false
+    }
+  },
+  "mcpServers": {
+    "tickbuddy": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/launcher/tickllme.sh",
+      "args": [
+        "serve",
+        "--level",
+        "${user_config.level}",
+        "--private=${user_config.show_private}"
+      ],
+      "env": {
+        "TICKBUDDY_URL": "${user_config.url}",
+        "TICKBUDDY_USER": "${user_config.user}",
+        "TICKBUDDY_APP_PASSWORD": "${user_config.app_password}"
+      }
+    }
+  }
+}
