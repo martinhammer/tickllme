@@ -48,7 +48,9 @@ jobs:
 
       - name: Start the Linux build through the launcher
         run: |
-          printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"release","version":"0"}}}' \
+          # Hold stdin open: on EOF the server closes before it answers.
+          set -o pipefail
+          { printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"release","version":"0"}}}'; sleep 2; } \
             | timeout 20 dist/plugin/launcher/tickllme.sh serve --level 1 > answer.json
           grep -q '"name":"tickllme"' answer.json
 
