@@ -180,7 +180,7 @@ func TestRegistrationPerLevel(t *testing.T) {
 	reads := []string{"get_day", "get_notes", "get_stats", "get_ticks", "list_tracks"}
 	writes := append(slices.Clone(reads), "add_to_counter", "set_note", "set_tick")
 	slices.Sort(writes)
-	all := append(slices.Clone(writes), "create_track", "rename_track")
+	all := append(slices.Clone(writes), "create_track", "rename_option", "rename_track")
 	slices.Sort(all)
 	for _, c := range []struct {
 		level   int
@@ -210,7 +210,7 @@ func TestAnnotations(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	idempotent := map[string]bool{"set_tick": true, "set_note": true, "rename_track": true}
+	idempotent := map[string]bool{"set_tick": true, "set_note": true, "rename_track": true, "rename_option": true}
 	for _, tool := range res.Tools {
 		a := tool.Annotations
 		if a == nil || a.OpenWorldHint == nil || *a.OpenWorldHint {
@@ -712,7 +712,7 @@ func TestTrackTools(t *testing.T) {
 		t.Errorf("create = %v", out)
 	}
 	e.ok("create_track", map[string]any{"name": "Walk", "type": "yes/no"})
-	e.fails("create_track", map[string]any{"name": "X", "type": "number"}, "type must be yes/no or counter")
+	e.fails("create_track", map[string]any{"name": "X", "type": "colour"}, "type must be yes/no, counter, number or choice")
 	out = e.ok("rename_track", map[string]any{"track": "Water", "name": "Glasses of water"})
 	if out["track"].(map[string]any)["name"] != "Glasses of water" {
 		t.Errorf("rename = %v", out)

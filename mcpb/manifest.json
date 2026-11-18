@@ -4,7 +4,7 @@
   "display_name": "TickLLMe",
   "version": "0.1.0",
   "description": "An MCP server that lets your AI agents log and read your entries in Tickbuddy, the daily habit and event tracker for Nextcloud.",
-  "long_description": "TickLLMe (pronounced \"tickle me\") is an MCP server that lets your AI agents log and read your entries in Tickbuddy, the daily habit and event tracker for Nextcloud. Ask how your exercise streak is going or what you ticked yesterday; at access level 2 Claude can also tick tracks, change counters and write notes, and at level 3 add and rename tracks. Claude can never delete, archive or import anything, and private tracks stay hidden unless you turn them on.",
+  "long_description": "TickLLMe (pronounced \"tickle me\") is an MCP server that lets your AI agents log and read your entries in Tickbuddy, the daily habit and event tracker for Nextcloud. Ask how your exercise streak is going or what you ticked yesterday; at access level 2 Claude can also tick tracks, change counters, log numbers and choices, and write notes, and at level 3 add and rename tracks and choice options. Claude can never delete, archive or import anything, and private tracks stay hidden unless you turn them on.",
   "author": {
     "name": "Martin Hammer",
     "url": "https://github.com/martinhammer"
@@ -69,7 +69,7 @@
     },
     {
       "name": "set_tick",
-      "description": "Tick, untick or set a counter on a day (level 2)"
+      "description": "Tick, untick, or set a counter, number or choice on a day (level 2)"
     },
     {
       "name": "add_to_counter",
@@ -81,11 +81,15 @@
     },
     {
       "name": "create_track",
-      "description": "Add a track (level 3)"
+      "description": "Add a yes/no, counter, number or choice track (level 3)"
     },
     {
       "name": "rename_track",
       "description": "Rename a track (level 3)"
+    },
+    {
+      "name": "rename_option",
+      "description": "Rename one option of a choice track (level 3)"
     }
   ],
   "prompts": [
@@ -128,7 +132,7 @@
     "level": {
       "type": "number",
       "title": "What Claude may do",
-      "description": "1: only read your journal (default). 2: also tick, untick, change counters and write notes. 3: also add and rename tracks. Claude can never delete, archive or import anything.",
+      "description": "1: only read your journal (default). 2: also tick, untick, change counters and write notes. 3: also add and rename tracks, and rename a Choice track's options. Claude can never delete, archive or import anything.",
       "default": 1,
       "min": 1,
       "max": 3

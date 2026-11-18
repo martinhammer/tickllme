@@ -1,0 +1,6 @@
+get_day {"date":"2026-10-10"}
+{"date":"2026-10-10","today":"2026-10-19","tracks":[{"id":1,"name":"Exercise","type":"yes/no","value":false},{"id":2,"name":"Coffee","type":"counter","value":0},{"id":5,"name":"Run","type":"number","unit":"km","value":null},{"id":6,"name":"Mum's mood","type":"choice","value":null},{"id":7,"name":"Mood","type":"future","value":null}]}
+set_tick {"track":"Run","value":null}
+{"date":"2026-10-19","today":"2026-10-19","track":"Run","trackId":5,"unit":"km","value":null}
+set_tick {"track":"Mum's mood","value":null}
+{"date":"2026-10-19","today":"2026-10-19","track":"Mum's mood","trackId":6,"value":null}

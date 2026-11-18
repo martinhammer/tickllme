@@ -44,8 +44,9 @@ Usage:
   tickllme status
   tickllme --version
 
-Levels: 1 only reads (default), 2 also ticks, counts and writes notes,
-3 also creates and renames tracks. Private tracks stay hidden without
+Levels: 1 only reads (default), 2 also ticks, counts, logs numbers and
+choices, and writes notes, 3 also creates and renames tracks and renames
+choice options. Private tracks stay hidden without
 --private. TICKLLME_LEVEL and TICKLLME_PRIVATE set the same; a flag wins.
 
 Sign-in: TICKBUDDY_URL, TICKBUDDY_USER and TICKBUDDY_APP_PASSWORD (all

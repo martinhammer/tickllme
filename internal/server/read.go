@@ -14,35 +14,72 @@ import (
 	"github.com/martinhammer/tickcli/tickbuddy"
 )
 
-// trackOut is a track in a result.
+// trackOut is a track in a result. A Number's and a Choice's settings appear
+// only on their own type.
 type trackOut struct {
-	ID       int    `json:"id"`
-	Name     string `json:"name"`
-	Type     string `json:"type" jsonschema:"yes/no, counter, or another type from a newer Tickbuddy (read-only here)"`
-	Archived bool   `json:"archived"`
-	Private  bool   `json:"private,omitempty"`
+	ID            int         `json:"id"`
+	Name          string      `json:"name"`
+	Type          string      `json:"type" jsonschema:"yes/no, counter, number, choice, or another type from a newer Tickbuddy (read-only here)"`
+	Archived      bool        `json:"archived"`
+	Private       bool        `json:"private,omitempty"`
+	Unit          string      `json:"unit,omitempty" jsonschema:"A number track's unit, such as km; left out when it has none"`
+	DecimalPlaces *int        `json:"decimalPlaces,omitempty" jsonschema:"How many decimals a number track keeps, 0 to 3; Tickbuddy rounds values to them"`
+	AllowNegative *bool       `json:"allowNegative,omitempty" jsonschema:"Whether a number track takes values below 0"`
+	Options       []optionOut `json:"options,omitempty" jsonschema:"A choice track's options in order: pick one by its label"`
+	OrderedScale  *bool       `json:"orderedScale,omitempty" jsonschema:"Whether a choice track's options run from one end of a scale to the other, rather than being a plain list"`
 }
 
-// typeName is t's type as Claude sees it: yes/no, counter, or the server's
-// own name for a type TickLLMe doesn't know (decision 11).
+type optionOut struct {
+	Value int    `json:"value" jsonschema:"The option's place, 1 to n: what a day stores"`
+	Label string `json:"label"`
+}
+
+// typeName is t's type as Claude sees it: yes/no, counter, number, choice,
+// or the server's own name for a type TickLLMe doesn't know (decision 11).
 func typeName(t tickbuddy.Track) string {
 	switch {
-	case !t.KnownType():
+	case !t.Known():
 		return t.Type
-	case t.IsCounter():
-		return "counter"
+	case t.Type == tickbuddy.TypeYesNo:
+		return "yes/no"
 	}
-	return "yes/no"
+	return t.Type
 }
 
 func newTrackOut(t tickbuddy.Track) trackOut {
-	return trackOut{ID: t.ID, Name: t.Name, Type: typeName(t), Archived: t.IsArchived(), Private: t.Private}
+	out := trackOut{ID: t.ID, Name: t.Name, Type: typeName(t), Archived: t.IsArchived(), Private: t.Private}
+	switch {
+	case t.IsNumber():
+		out.Unit, out.DecimalPlaces, out.AllowNegative = t.Unit, &t.DecimalPlaces, &t.AllowNegative
+	case t.IsChoice():
+		out.OrderedScale = &t.OrderedScale
+		for _, o := range t.Options {
+			out.Options = append(out.Options, optionOut{Value: o.Value, Label: o.Label})
+		}
+	}
+	return out
 }
 
 // value is v (a stored tick) as Claude sees it: true/false on a yes/no
-// track, a number on a counter, and on a track of a type TickLLMe doesn't
+// track, a number on a counter, the exact stored number on a Number, an
+// option's place on a Choice, and on a track of a type TickLLMe doesn't
 // know, the server's value unchanged.
 func value(t tickbuddy.Track, v tickbuddy.Value) any { return tickbuddy.ValueFor(t, v) }
+
+// extras are what a result adds next to a day's value on t: a Number's
+// unit (when it has one, also without a value) and a Choice's label (with
+// a value whose option exists).
+func extras(t tickbuddy.Track, v tickbuddy.Value) (unit, label *string) {
+	if t.IsNumber() && t.Unit != "" {
+		unit = &t.Unit
+	}
+	if v = tickbuddy.ValueFor(t, v); t.IsChoice() && !v.IsNull() && v.Raw() == nil {
+		if o, ok := t.Option(v.Int()); ok {
+			label = &o.Label
+		}
+	}
+	return unit, label
+}
 
 type listTracksIn struct {
 	IncludeArchived bool `json:"include_archived,omitempty" jsonschema:"Include archived tracks too"`
@@ -61,8 +98,10 @@ type getDayIn struct {
 type dayTrack struct {
 	ID       int     `json:"id"`
 	Name     string  `json:"name"`
-	Type     string  `json:"type" jsonschema:"yes/no, counter, or another type from a newer Tickbuddy (read-only here)"`
-	Value    any     `json:"value" jsonschema:"true/false on a yes/no track, a number on a counter; false or 0 means no entry. On another type, the server's value as it is, null for no entry"`
+	Type     string  `json:"type" jsonschema:"yes/no, counter, number, choice, or another type from a newer Tickbuddy (read-only here)"`
+	Value    any     `json:"value" jsonschema:"true/false on a yes/no track, a number on a counter; false or 0 means no entry. On a number track the reading (0 is a reading), on a choice track the option's place, null for no entry. On another type, the server's value as it is, null for no entry"`
+	Unit     *string `json:"unit,omitempty" jsonschema:"A number track's unit"`
+	Label    *string `json:"label,omitempty" jsonschema:"The label of a choice track's option"`
 	Note     *string `json:"note,omitempty"`
 	Archived bool    `json:"archived,omitempty"`
 	Private  bool    `json:"private,omitempty"`
@@ -81,10 +120,12 @@ type rangeIn struct {
 }
 
 type tickOut struct {
-	Date    string `json:"date"`
-	Track   string `json:"track"`
-	TrackID int    `json:"trackId"`
-	Value   any    `json:"value" jsonschema:"true on a yes/no track, a number on a counter, the server's value as it is on another type"`
+	Date    string  `json:"date"`
+	Track   string  `json:"track"`
+	TrackID int     `json:"trackId"`
+	Value   any     `json:"value" jsonschema:"true on a yes/no track, a number on a counter or number track, the option's place on a choice track, the server's value as it is on another type"`
+	Unit    *string `json:"unit,omitempty" jsonschema:"A number track's unit"`
+	Label   *string `json:"label,omitempty" jsonschema:"The label of a choice track's option"`
 }
 
 type getTicksOut struct {
@@ -125,7 +166,7 @@ type runOut struct {
 type statsOut struct {
 	Track         string   `json:"track"`
 	TrackID       int      `json:"trackId"`
-	Total         int      `json:"total" jsonschema:"Days ticked (yes/no) or the sum of the counts (counter)"`
+	Total         int      `json:"total" jsonschema:"Days ticked (yes/no), the sum of the counts (counter), or days with an entry (number, choice)"`
 	WeeklyMean    float64  `json:"weeklyMean"`
 	Last7         int      `json:"last7" jsonschema:"In the last 7 days, today included"`
 	Previous7     int      `json:"previous7" jsonschema:"In the 7 days before those"`
@@ -136,8 +177,8 @@ type statsOut struct {
 	LongestBreak  *runOut  `json:"longestBreak"`
 	FirstTick     string   `json:"firstTick,omitempty"`
 	LastTick      string   `json:"lastTick,omitempty"`
-	MaxValue      int      `json:"maxValue"`
-	MinValue      int      `json:"minValue"`
+	MaxValue      any      `json:"maxValue" jsonschema:"The highest count, entry (number) or place (choice on an ordered scale); null on a plain-list choice"`
+	MinValue      any      `json:"minValue" jsonschema:"The lowest, as maxValue"`
 	Runs          []runOut `json:"runs,omitempty"`
 }
 
@@ -146,6 +187,15 @@ type getStatsOut struct {
 	From  string     `json:"from,omitempty"`
 	To    string     `json:"to,omitempty"`
 	Stats []statsOut `json:"stats"`
+}
+
+// statsValue is a track's maxValue or minValue: a Number's exact Decimal,
+// any other track's as the server sent it.
+func statsValue(t tickbuddy.Track, v tickbuddy.Value) any {
+	if t.IsNumber() {
+		return tickbuddy.ValueFor(t, v)
+	}
+	return v
 }
 
 func newRunOut(r *tickbuddy.Run) *runOut {
@@ -164,7 +214,7 @@ func dateString(d *tickbuddy.Date) string {
 
 func (s *srv) addReadTools(m *mcp.Server) {
 	mcp.AddTool(m, readTool("list_tracks", "List tracks",
-		"Lists the person's Tickbuddy tracks in journal order: id, name, type (yes/no, counter, or the name of a newer type TickLLMe can read but not tick) and whether archived."),
+		"Lists the person's Tickbuddy tracks in journal order: id, name, type (yes/no, counter, number, choice, or the name of a newer type TickLLMe can read but not tick) and whether archived. A number track also has its unit, decimal places and whether it allows negative values; a choice track its options in order, each with its place and label (pick an option by its label), and whether they are an ordered scale."),
 		s.listTracks)
 	mcp.AddTool(m, readTool("get_day", "Get a day",
 		"Every track on one day with its value and note, unticked ones included (false or 0). The one call for \"how did I do yesterday?\"."),
@@ -176,7 +226,7 @@ func (s *srv) addReadTools(m *mcp.Server) {
 		"The day notes from one day to another, both included, newest first. Same limits as get_ticks."),
 		s.getNotes)
 	mcp.AddTool(m, readTool("get_stats", "Get stats",
-		"The stats Tickbuddy shows on its Analytics cards, per track: total, weekly mean, last 7 days, current and longest streak and break. With from and/or to, only that period counts, so comparing two periods (\"2026 against 2025\") is two calls."),
+		"The stats Tickbuddy shows on its Analytics cards, per track: total, weekly mean, last 7 days, current and longest streak and break. With from and/or to, only that period counts, so comparing two periods (\"2026 against 2025\") is two calls. On number and choice tracks the counts are of days with an entry; maxValue and minValue are the highest and lowest value (number) or place (choice on an ordered scale), null on a plain-list choice."),
 		s.getStats)
 }
 
@@ -229,7 +279,9 @@ func (s *srv) getDay(ctx context.Context, _ *mcp.CallToolRequest, in getDayIn) (
 		}
 	}
 	for _, t := range tracks {
-		dt := dayTrack{ID: t.ID, Name: t.Name, Type: typeName(t), Value: dayValue(t, values), Archived: t.IsArchived(), Private: t.Private}
+		v := dayValue(t, values)
+		dt := dayTrack{ID: t.ID, Name: t.Name, Type: typeName(t), Value: v, Archived: t.IsArchived(), Private: t.Private}
+		dt.Unit, dt.Label = extras(t, v)
 		if n, ok := notes[t.ID]; ok {
 			dt.Note = &n
 		}
@@ -238,22 +290,24 @@ func (s *srv) getDay(ctx context.Context, _ *mcp.CallToolRequest, in getDayIn) (
 	return nil, out, nil
 }
 
-// dayValue is t's value in values, or its empty value (no, 0, or null on
-// a type TickLLMe doesn't know, where 0 can be a real value) without one.
-func dayValue(t tickbuddy.Track, values map[int]tickbuddy.Value) any {
+// dayValue is t's value in values, or its empty value (no, 0, or null on a
+// number or choice track and a type TickLLMe doesn't know, where 0 can be a
+// real value) without one.
+func dayValue(t tickbuddy.Track, values map[int]tickbuddy.Value) tickbuddy.Value {
 	if v, ok := values[t.ID]; ok {
-		return value(t, v)
+		return tickbuddy.ValueFor(t, v)
 	}
 	return tickbuddy.EmptyValue(t)
 }
 
 // entry reports whether v is an entry: a tick or a count above 0, or on a
-// type TickLLMe doesn't know, any value but null.
+// number or choice track and a type TickLLMe doesn't know, any value but
+// null (a number's 0 is a reading).
 func entry(t tickbuddy.Track, v tickbuddy.Value) bool {
-	if !t.KnownType() {
-		return string(tickbuddy.ValueFor(t, v).Raw()) != "null"
+	if t.Type == tickbuddy.TypeYesNo || t.IsCounter() {
+		return v.Int() > 0
 	}
-	return v.Int() > 0
+	return !tickbuddy.ValueFor(t, v).IsNull()
 }
 
 // span reads a range's from, to and track, and checks the day caps
@@ -334,7 +388,9 @@ func (s *srv) getTicks(ctx context.Context, _ *mcp.CallToolRequest, in rangeIn) 
 	})
 	for _, t := range kept {
 		tr := byID[t.TrackID]
-		out.Ticks = append(out.Ticks, tickOut{Date: t.Date.String(), Track: tr.Name, TrackID: tr.ID, Value: value(tr, t.Value)})
+		to := tickOut{Date: t.Date.String(), Track: tr.Name, TrackID: tr.ID, Value: value(tr, t.Value)}
+		to.Unit, to.Label = extras(tr, t.Value)
+		out.Ticks = append(out.Ticks, to)
 	}
 	return nil, out, nil
 }
@@ -424,7 +480,7 @@ func (s *srv) getStats(ctx context.Context, _ *mcp.CallToolRequest, in getStatsI
 			Current: newRunOut(st.Current), UpToYesterday: st.UpToYesterday,
 			LongestStreak: newRunOut(st.LongestStreak), LongestBreak: newRunOut(st.LongestBreak),
 			FirstTick: dateString(st.FirstTick), LastTick: dateString(st.LastTick),
-			MaxValue: st.MaxValue, MinValue: st.MinValue,
+			MaxValue: statsValue(t, st.MaxValue), MinValue: statsValue(t, st.MinValue),
 		}
 		for _, r := range st.Runs {
 			so.Runs = append(so.Runs, *newRunOut(&r))

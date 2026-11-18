@@ -165,7 +165,7 @@ func TestNewerTypeGuidance(t *testing.T) {
 		t.Fatal(err)
 	}
 	text := res.Messages[0].Content.(*mcp.TextContent).Text
-	if !strings.Contains(text, "tracks of any other type than yes/no or counter: mention them together in one line as needing a TickLLMe update, and don't ask about them") {
+	if !strings.Contains(text, "tracks of any other type than yes/no, counter, number or choice: mention them together in one line as needing a TickLLMe update, and don't ask about them") {
 		t.Errorf("log_day text lacks newer types:\n%s", text)
 	}
 }

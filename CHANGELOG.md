@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0] - unreleased
+
+Number and choice tracks, as Tickbuddy has them since its `numberTracks` and `choiceTracks` features.
+
+- `list_tracks` gives a number track's unit, decimal places and whether it allows negative values, and a choice track's options and whether they are an ordered scale.
+- `get_day`, `get_ticks` and `set_tick` give a number's stored value exactly, with its `unit`, and a choice's place with its `label`; `null` is a day without a value.
+- `set_tick` sets a number (`10.4` or `"10.4"`, never through a float) or a choice (an option's label, `"#2"`, or the place as a number), and clears either with `null`.
+- `add_to_counter` on a number or choice track says to use `set_tick`.
+- `get_stats` includes number and choice tracks, counting days with an entry; `maxValue` and `minValue` are a number's values, an ordered choice's places, or `null`.
+- Level 3: `create_track` takes the new types with their settings, and `rename_option` renames a choice track's option.
+- The instructions, the skill and `log_day` cover the new types: a number's 0 is a reading, a point is the decimal separator, adding to a number is reading the day and setting the total, and a choice track's options are shown for a yes before it is created.
+
 ## [0.1.0] - 2026-10-22
 
 First release.

@@ -23,7 +23,7 @@ import (
 const (
 	LevelRead   = 1 // read the journal
 	LevelTicks  = 2 // also tick, change counters and write notes
-	LevelTracks = 3 // also create and rename tracks
+	LevelTracks = 3 // also create and rename tracks, and rename a Choice's options
 )
 
 // Caps on one read (decision 6).

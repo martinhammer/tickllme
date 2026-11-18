@@ -10,8 +10,8 @@ You choose an access level in TickLLMe's settings:
 | Level | Claude can |
 |---|---|
 | 1 | Default. Only read your journal: tracks, days, ticks, notes and stats |
-| 2 | Also tick and untick, change counters and write notes |
-| 3 | Also add and rename tracks |
+| 2 | Also tick and untick, change counters, log numbers and choices, and write notes |
+| 3 | Also add and rename tracks, and rename a choice track's options |
 
 Claude can never delete, archive or reorder tracks and it can't import anything. Tracks marked private stay hidden from Claude unless you turn on "Show private tracks". Claude also asks before each tool call unless you allow it.
 
@@ -66,13 +66,16 @@ Tickbuddy 2.3.0
 | `get_ticks` | 1 | The entries over up to 31 days (366 for one track), at most 500 |
 | `get_notes` | 1 | The day notes over the same ranges |
 | `get_stats` | 1 | Total, weekly mean, last 7 days, streaks and breaks; for all time, or for a period with `from` and `to` |
-| `set_tick` | 2 | Tick or untick a yes/no track, or set a counter, optionally with a note |
+| `set_tick` | 2 | Tick or untick a yes/no track, or set a counter, a number track (`10.4`) or a choice track (an option's label), optionally with a note; `null` clears a number or choice day |
 | `add_to_counter` | 2 | Add to or take from a counter |
 | `set_note` | 2 | Write, replace, append to or delete a day's note |
-| `create_track` | 3 | Add a yes/no or counter track |
+| `create_track` | 3 | Add a yes/no, counter, number (with its unit, decimal places and whether it allows negative values) or choice track (with its options, and whether they are an ordered scale) |
 | `rename_track` | 3 | Rename a track |
+| `rename_option` | 3 | Rename one option of a choice track |
 
 Dates are `YYYY-MM-DD`, `today`, `yesterday` or `-N` (N days ago), in your computer's time zone. Notes are plain text, up to 500 characters; appending a line that's already in the note changes nothing, so an agent logging several activities a day can append safely. Stats for a period need Tickbuddy with the `statsPeriod` feature, and appending notes the `notesAppend` feature; an older server says so.
+
+Tickbuddy has four types of track: yes/no, counter, number and choice. Claude logs "I ran 10.4 km" or "Mum seemed happy" with `set_tick`, which takes a number with a point (never a comma) and an option by its label. Tickbuddy rounds a number to the track's decimal places, and Claude reports the value it stored. `add_to_counter` is for counters only. Number and choice tracks need Tickbuddy with the `numberTracks` and `choiceTracks` features.
 
 In Claude Code, the `log_day` prompt is `/mcp__tickbuddy__log_day`: it goes through every track for a day, confirms what's already entered, asks about the rest, and saves the changes after one yes. Claude Desktop offers it among the extension's prompts.
 

@@ -178,7 +178,7 @@ func TestStatusMissingFeatures(t *testing.T) {
 	defer fake.Close()
 	fake.Old()
 	a, out, _ := testApp(t, map[string]string{tickbuddy.EnvURL: fake.URL, tickbuddy.EnvUser: "martin", tickbuddy.EnvAppPassword: "app-pass"})
-	if code := a.run(context.Background(), []string{"status"}); code != 0 || !strings.HasSuffix(out.String(), "Tickbuddy 2.2.0 · lacks booleanSet, counterIncrement, stats, statsPeriod, notes, notesAppend\n") {
+	if code := a.run(context.Background(), []string{"status"}); code != 0 || !strings.HasSuffix(out.String(), "Tickbuddy 2.2.0 · lacks booleanSet, counterIncrement, stats, statsPeriod, notes, notesAppend, numberTracks, choiceTracks\n") {
 		t.Errorf("status = %q", out)
 	}
 }
