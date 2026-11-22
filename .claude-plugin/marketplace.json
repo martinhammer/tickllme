@@ -10,12 +10,12 @@
       "name": "tickllme",
       "displayName": "TickLLMe",
       "description": "An MCP server that lets your AI agents log and read your entries in Tickbuddy, the daily habit and event tracker for Nextcloud.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "source": {
         "source": "archive",
-        "url": "https://github.com/martinhammer/tickllme/releases/download/v0.1.0/tickllme-plugin-v0.1.0.zip",
-        "sha256": "365120766f97e1fb965782da861bbcd72d7db536b13e6fc4d37a9f451b5e9643"
-      }    
+        "url": "https://github.com/martinhammer/tickllme/releases/download/v0.2.0/tickllme-plugin-v0.2.0.zip",
+        "sha256": "bfc9c30f86a457fc666098b5f7c4c7a4b3794e90f3d3455afa2ae2629e743550"
+      }
     }
   ]
 }
