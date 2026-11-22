@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/google/jsonschema-go v0.4.3
-	github.com/martinhammer/tickcli v0.1.0
+	github.com/martinhammer/tickcli v0.2.0
 	github.com/modelcontextprotocol/go-sdk v1.8.0
 	golang.org/x/term v0.47.0
 )
@@ -21,5 +21,3 @@ require (
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 )
-
-replace github.com/martinhammer/tickcli => ../tickcli
