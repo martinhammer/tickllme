@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "tickllme",
   "display_name": "TickLLMe",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "An MCP server that lets your AI agents log and read your entries in Tickbuddy, the daily habit and event tracker for Nextcloud.",
   "long_description": "TickLLMe (pronounced \"tickle me\") is an MCP server that lets your AI agents log and read your entries in Tickbuddy, the daily habit and event tracker for Nextcloud. Ask how your exercise streak is going or what you ticked yesterday; at access level 2 Claude can also tick tracks, change counters, log numbers and choices, and write notes, and at level 3 add and rename tracks and choice options. Claude can never delete, archive or import anything, and private tracks stay hidden unless you turn them on.",
   "author": {
